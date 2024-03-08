@@ -1,23 +1,64 @@
 # Dockerfile
 
-# Use the rocker/r-ver image as the base image.
-FROM rocker/r-ver:4.3.2
+# Use the rocker/rstudio image as the base image.
+FROM rocker/rstudio:latest
 
-# Environment variables.
-ENV S6_VERSION=v2.1.0.2
-ENV RSTUDIO_VERSION=2023.12.0+369
-ENV DEFAULT_USER=rstudio
-ENV PANDOC_VERSION=default
-ENV QUARTO_VERSION=default
+# Update the linux system/ install apt-get packages.
+RUN apt-get -y update && \
+    apt-get -y install \
+    libxt6 \
+    zlib1g-dev \
+    libpng-dev \
+    libpoppler-cpp-dev \
+    libxml2-dev \
+    libgit2-dev \
+    libcurl4-openssl-dev \
+    libfontconfig1-dev \
+    libssl-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
+    libtiff5-dev \
+    libjpeg-dev \
+    cmake \
+    pandoc \
+    python3
 
-# Install scripts from the rocker_scripts directory.
-RUN /rocker_scripts/install_rstudio.sh
-RUN /rocker_scripts/install_pandoc.sh
-RUN /rocker_scripts/install_quarto.sh
+# Clean up the apt-get installations.
+RUN rm -rf /var/lib/apt/lists/*
 
+# Add a line to the Rsession config.
+RUN echo "copilot-enabled=1" >>/etc/rstudio/rsession.conf
 
-# Ports to expose.
-EXPOSE 8787
+# Add rstudio user to sudo group.
+RUN usermod -aG sudo rstudio
 
-# Init system.
-CMD ["/init"]
+# Set the working directory.
+WORKDIR /home/rstudio
+
+# Run as the rstudio user.
+USER rstudio
+
+# Copy the renv.lock file.
+COPY renv.lock /home/rstudio/
+
+# Create the Lessons directory.
+RUN mkdir -p /home/rstudio/Lessons
+
+# Create the Workspace directory for students' projects.
+RUN mkdir -p /home/rstudio/Workspace
+
+# Return to root.
+USER root
+
+# Copy rstudio-prefs.json
+COPY rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
+RUN chown rstudio:rstudio /home/rstudio/.config/rstudio/rstudio-prefs.json
+
+# Add the swirl-setup.R file
+COPY swirl-setup.R /home/rstudio/Lessons/swirl-setup.R
+RUN chown rstudio:rstudio /home/rstudio/Lessons/swirl-setup.R
+
+# Add git-setup.sh file
+COPY git-setup.sh /home/rstudio/git-setup.sh
+RUN chown rstudio:rstudio /home/rstudio/git-setup.sh
