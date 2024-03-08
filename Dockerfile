@@ -56,9 +56,9 @@ COPY rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
 RUN chown rstudio:rstudio /home/rstudio/.config/rstudio/rstudio-prefs.json
 
 # Add the swirl-setup.R file
-COPY swirl-setup.R /home/rstudio/Lessons/swirl-setup.R
-RUN chown rstudio:rstudio /home/rstudio/Lessons/swirl-setup.R
+COPY swirl-update.R /home/rstudio/Lessons/swirl-update.R
+RUN chown rstudio:rstudio /home/rstudio/Lessons/swirl-update.R
 
 # Add git-setup.sh file
-COPY git-setup.sh /home/rstudio/git-setup.sh
-RUN chown rstudio:rstudio /home/rstudio/git-setup.sh
+COPY rstudio-setup.R /home/rstudio/rstudio-setup.R
+RUN chown rstudio:rstudio /home/rstudio/rstudio-setup.R
